@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: threadbench
+    orgId: 1
+    folder: ThreadBench
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /var/lib/grafana/dashboards

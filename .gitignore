@@ -1,2 +1,42 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor / IDE
 .idea/
 *.iml
+.vscode/
+
+# Java / Maven
+backend/target/
+backend/.mvn/
+*.class
+
+# Frontend / Node / Next.js
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.turbo/
+frontend/coverage/
+frontend/*.tsbuildinfo
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/pnpm-debug.log*
+
+# Logs and runtime output
+*.log
+logs/
+
+# Benchmark and profiling artifacts
+*.hprof
+*.jfr
+*.dump
+*.tdump
+heapdump*.*
+thread-dump*.*
+
+# Environment overrides
+.env
+.env.*
+!.env.example

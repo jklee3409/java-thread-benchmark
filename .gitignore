@@ -7,9 +7,10 @@ Thumbs.db
 *.iml
 .vscode/
 
-# Java / Maven
+# Java / Gradle
 backend/target/
-backend/.mvn/
+backend/.gradle/
+backend/build/
 *.class
 
 # Frontend / Node / Next.js

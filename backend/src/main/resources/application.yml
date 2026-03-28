@@ -1,0 +1,51 @@
+spring:
+  application:
+    name: thread-benchmark-backend
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        generate_statistics: true
+  data:
+    redis:
+      timeout: 3s
+  flyway:
+    enabled: true
+  threads:
+    virtual:
+      enabled: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  observations:
+    key-values:
+      application: ${spring.application.name}
+      mode: ${benchmark.mode}
+      env: ${benchmark.environment}
+
+server:
+  port: 8080
+
+benchmark:
+  mode: PLATFORM
+  environment: local
+  default-external-delay-ms: 100
+
+external-api:
+  base-url: http://localhost:18089
+
+logging:
+  level:
+    org.springframework.web.client.RestClient: INFO

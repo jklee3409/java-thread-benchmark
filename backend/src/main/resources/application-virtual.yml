@@ -1,0 +1,9 @@
+spring:
+  threads:
+    virtual:
+      enabled: true
+  main:
+    keep-alive: true
+
+benchmark:
+  mode: VIRTUAL

@@ -1,7 +1,9 @@
 package com.example.threadbench.web;
 
+import com.example.threadbench.config.AppProperties;
 import com.example.threadbench.dto.WorkloadResponse;
 import com.example.threadbench.service.WorkloadService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -10,17 +12,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/workloads")
+@RequiredArgsConstructor
 public class WorkloadController {
 
     private final WorkloadService workloadService;
+    private final AppProperties appProperties;
 
-    public WorkloadController(WorkloadService workloadService) {
-        this.workloadService = workloadService;
-    }
-
-    @GetMapping("/cache-hit/{key}")
-    public WorkloadResponse cacheHit(@PathVariable String key) {
-        return workloadService.cacheHit(key);
+    @GetMapping("/cache-hit/{id}")
+    public WorkloadResponse cacheHit(@PathVariable long id) {
+        return workloadService.cacheHit(id);
     }
 
     @GetMapping("/db-read/{id}")
@@ -30,10 +30,11 @@ public class WorkloadController {
 
     @GetMapping("/external")
     public WorkloadResponse external(
-            @RequestParam(defaultValue = "100") int delayMs,
+            @RequestParam(required = false) Integer delayMs,
             @RequestParam(defaultValue = "200") int status
     ) {
-        return workloadService.external(delayMs, status);
+        int effectiveDelayMs = delayMs == null ? appProperties.getDefaultExternalDelayMs() : delayMs;
+        return workloadService.external(effectiveDelayMs, status);
     }
 
     @GetMapping("/mixed/{id}")
@@ -41,6 +42,7 @@ public class WorkloadController {
             @PathVariable long id,
             @RequestParam(required = false) Integer delayMs
     ) {
-        return workloadService.mixed(id, delayMs == null ? 100 : delayMs);
+        int effectiveDelayMs = delayMs == null ? appProperties.getDefaultExternalDelayMs() : delayMs;
+        return workloadService.mixed(id, effectiveDelayMs);
     }
 }

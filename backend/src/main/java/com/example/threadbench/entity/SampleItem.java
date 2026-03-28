@@ -4,9 +4,15 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "sample_item")
+@Getter
+@Setter
+@NoArgsConstructor
 public class SampleItem {
 
     @Id
@@ -18,36 +24,9 @@ public class SampleItem {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String payload;
 
-    public SampleItem() {
-    }
-
     public SampleItem(Long id, String name, String payload) {
         this.id = id;
         this.name = name;
-        this.payload = payload;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getPayload() {
-        return payload;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setPayload(String payload) {
         this.payload = payload;
     }
 }

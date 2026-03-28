@@ -45,6 +45,8 @@ benchmark:
 
 external-api:
   base-url: http://localhost:18089
+  connect-timeout-ms: 2000
+  read-timeout-ms: 5000
 
 logging:
   level:

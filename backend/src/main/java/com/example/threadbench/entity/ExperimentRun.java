@@ -1,10 +1,17 @@
 package com.example.threadbench.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.time.Instant;
 
 @Entity
 @Table(name = "experiment_run")
+@Getter
+@Setter
+@NoArgsConstructor
 public class ExperimentRun {
 
     @Id
@@ -29,62 +36,11 @@ public class ExperimentRun {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();
 
-    public ExperimentRun() {
-    }
-
     public ExperimentRun(String mode, String scenario, double throughput, double p95LatencyMs, double errorRate) {
         this.mode = mode;
         this.scenario = scenario;
         this.throughput = throughput;
         this.p95LatencyMs = p95LatencyMs;
-        this.errorRate = errorRate;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getMode() {
-        return mode;
-    }
-
-    public String getScenario() {
-        return scenario;
-    }
-
-    public double getThroughput() {
-        return throughput;
-    }
-
-    public double getP95LatencyMs() {
-        return p95LatencyMs;
-    }
-
-    public double getErrorRate() {
-        return errorRate;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setMode(String mode) {
-        this.mode = mode;
-    }
-
-    public void setScenario(String scenario) {
-        this.scenario = scenario;
-    }
-
-    public void setThroughput(double throughput) {
-        this.throughput = throughput;
-    }
-
-    public void setP95LatencyMs(double p95LatencyMs) {
-        this.p95LatencyMs = p95LatencyMs;
-    }
-
-    public void setErrorRate(double errorRate) {
         this.errorRate = errorRate;
     }
 }

@@ -7,13 +7,17 @@ import com.example.threadbench.entity.SampleItem;
 import com.example.threadbench.repository.SampleItemRepository;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationRegistry;
-import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Duration;
 
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+
 @Service
+@RequiredArgsConstructor
 public class WorkloadService {
 
     private final SampleItemRepository sampleItemRepository;
@@ -22,21 +26,8 @@ public class WorkloadService {
     private final ObservationRegistry observationRegistry;
     private final AppProperties appProperties;
 
-    public WorkloadService(
-            SampleItemRepository sampleItemRepository,
-            StringRedisTemplate stringRedisTemplate,
-            ExternalApiClient externalApiClient,
-            ObservationRegistry observationRegistry,
-            AppProperties appProperties
-    ) {
-        this.sampleItemRepository = sampleItemRepository;
-        this.stringRedisTemplate = stringRedisTemplate;
-        this.externalApiClient = externalApiClient;
-        this.observationRegistry = observationRegistry;
-        this.appProperties = appProperties;
-    }
-
-    public WorkloadResponse cacheHit(String key) {
+    public WorkloadResponse cacheHit(long id) {
+        String key = "item:" + id;
         String value = Observation.createNotStarted("benchmark.redis.get", observationRegistry)
                 .lowCardinalityKeyValue("layer", "redis")
                 .observe(() -> stringRedisTemplate.opsForValue().get(key));
@@ -51,8 +42,7 @@ public class WorkloadService {
     public WorkloadResponse dbRead(long id) {
         SampleItem item = Observation.createNotStarted("benchmark.db.read", observationRegistry)
                 .lowCardinalityKeyValue("layer", "db")
-                .observe(() -> sampleItemRepository.findById(id)
-                        .orElseThrow(() -> new EntityNotFoundException("Sample item not found: " + id)));
+                .observe(() -> findSampleItem(id));
 
         return new WorkloadResponse("db-read", appProperties.getMode(), item.getId(), item.getPayload(), 0);
     }
@@ -75,8 +65,7 @@ public class WorkloadService {
                     if (finalValue == null) {
                         SampleItem item = Observation.createNotStarted("benchmark.db.read", observationRegistry)
                                 .lowCardinalityKeyValue("layer", "db")
-                                .observe(() -> sampleItemRepository.findById(id)
-                                        .orElseThrow(() -> new EntityNotFoundException("Sample item not found: " + id)));
+                                .observe(() -> findSampleItem(id));
                         finalValue = item.getPayload();
                         stringRedisTemplate.opsForValue().set(cacheKey, finalValue, Duration.ofMinutes(10));
                     }
@@ -84,5 +73,10 @@ public class WorkloadService {
                     externalApiClient.fetchProduct(delayMs, 200);
                     return new WorkloadResponse("mixed", appProperties.getMode(), id, finalValue, delayMs);
                 });
+    }
+
+    private SampleItem findSampleItem(long id) {
+        return sampleItemRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "Sample item not found: " + id));
     }
 }

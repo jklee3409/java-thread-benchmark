@@ -1,0 +1,13 @@
+spring:
+  threads:
+    virtual:
+      enabled: false
+
+server:
+  tomcat:
+    threads:
+      max: 200
+      min-spare: 20
+
+benchmark:
+  mode: PLATFORM

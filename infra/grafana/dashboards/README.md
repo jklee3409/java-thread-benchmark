@@ -1,12 +1,14 @@
-이 폴더에는 이후 Grafana dashboard JSON을 넣습니다.
+Grafana dashboard JSON files are provisioned from this directory.
 
-권장 패널:
-- RPS
-- http.server.requests p95
-- benchmark.db.read p95
-- benchmark.redis.get p95
-- benchmark.external.call p95
-- jdbc.connections.active
-- hikaricp.connections.pending
-- jvm.threads.live
-- jvm.threads.virtual.live (micrometer-java21 사용 시)
+Included dashboard:
+- `thread-benchmark-overview.json`
+
+Covered panels:
+- HTTP throughput
+- HTTP p95 latency
+- DB layer p95
+- Redis layer p95
+- External API layer p95
+- Hikari active and pending connections
+- JVM live threads
+- JVM virtual thread metrics

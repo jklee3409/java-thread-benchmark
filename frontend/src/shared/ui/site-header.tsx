@@ -9,22 +9,22 @@ export function SiteHeader({ current }: SiteHeaderProps) {
   return (
     <header className="site-header">
       <div className="site-brand">
-        <span className="site-brand-mark">JT</span>
+        <span className="site-brand-mark">TB</span>
         <div>
-          <strong>Java Thread Bench</strong>
-          <p>Java 21 VT/PT benchmark workspace</p>
+          <strong>Thread Bench Lab</strong>
+          <p>스레드 성능 실험 워크스페이스</p>
         </div>
       </div>
 
       <nav className="site-nav">
         <Link href="/" className={cn("nav-link", current === "home" && "active")}>
-          Overview
+          홈
         </Link>
         <Link
           href="/dashboard"
           className={cn("nav-link", current === "dashboard" && "active")}
         >
-          Dashboard
+          실험실
         </Link>
       </nav>
     </header>

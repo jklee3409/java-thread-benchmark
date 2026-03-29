@@ -27,41 +27,41 @@ export function getGrafanaEmbedUrl(): string {
 export function getMonitoringLinks(): MonitoringLink[] {
   return [
     {
-      title: "Grafana Dashboard",
+      title: "Grafana 대시보드",
       description:
-        "Compare HTTP, DB, Redis, external I/O, HikariCP, and JVM thread metrics in one dashboard.",
+        "HTTP, DB, Redis, 외부 API, HikariCP, JVM 스레드 지표를 한 화면에서 비교합니다.",
       href: getGrafanaDashboardUrl(),
       highlight: "Grafana",
     },
     {
       title: "Prometheus",
-      description: "Inspect raw metrics and scrape health directly from the monitoring backend.",
+      description: "원시 메트릭과 스크레이프 상태를 직접 확인할 수 있습니다.",
       href: DEFAULT_PROMETHEUS_BASE_URL,
-      highlight: "Metrics",
+      highlight: "메트릭",
     },
     {
-      title: "Platform API",
-      description: "Direct entry point for the platform-thread backend target.",
+      title: "플랫폼 스레드 API",
+      description: "플랫폼 스레드 백엔드로 직접 접근하는 엔드포인트입니다.",
       href: DEFAULT_PLATFORM_API_BASE_URL,
       highlight: "8080",
     },
     {
-      title: "Virtual API",
-      description: "Direct entry point for the virtual-thread backend target.",
+      title: "버추얼 스레드 API",
+      description: "버추얼 스레드 백엔드로 직접 접근하는 엔드포인트입니다.",
       href: DEFAULT_VIRTUAL_API_BASE_URL,
       highlight: "8081",
     },
     {
       title: "WireMock",
-      description: "External API simulator used to reproduce blocking I/O and error scenarios.",
+      description: "느린 외부 API와 오류 상황을 재현하는 모의 서버입니다.",
       href: DEFAULT_WIREMOCK_BASE_URL,
-      highlight: "Mock API",
+      highlight: "모의 API",
     },
     {
-      title: "Default GUI Target",
-      description: "Current default backend target for the dashboard runtime configuration.",
+      title: "기본 GUI 대상",
+      description: "현재 대시보드가 기본값으로 연결하는 백엔드 대상입니다.",
       href: DEFAULT_API_BASE_URL,
-      highlight: "Default",
+      highlight: "기본값",
     },
   ];
 }

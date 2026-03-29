@@ -1,19 +1,21 @@
 @import "../src/shared/styles/dashboard.css";
 
 :root {
-  --bg: #f4efe6;
-  --panel: rgba(255, 252, 246, 0.88);
-  --panel-strong: #fffaf0;
-  --ink: #1a1814;
-  --muted: #645a4c;
-  --line: rgba(26, 24, 20, 0.1);
-  --accent: #da5a2a;
-  --accent-soft: rgba(218, 90, 42, 0.12);
-  --success: #246b41;
-  --danger: #9f2d23;
-  --shadow: 0 20px 60px rgba(59, 41, 23, 0.12);
-  --font-sans: "Bahnschrift", "Trebuchet MS", "Segoe UI", sans-serif;
-  --font-mono: "Cascadia Mono", "IBM Plex Mono", "Consolas", monospace;
+  --bg: #f5f8fc;
+  --panel: rgba(255, 255, 255, 0.92);
+  --panel-strong: #ffffff;
+  --panel-muted: rgba(238, 244, 252, 0.92);
+  --ink: #0f172a;
+  --muted: #5b6475;
+  --line: rgba(15, 23, 42, 0.09);
+  --accent: #2563eb;
+  --accent-soft: rgba(37, 99, 235, 0.1);
+  --focus: rgba(37, 99, 235, 0.24);
+  --success: #15803d;
+  --danger: #dc2626;
+  --shadow: 0 24px 56px rgba(15, 23, 42, 0.08);
+  --font-sans: "Pretendard Variable", "Pretendard", "Noto Sans KR", "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", "Cascadia Mono", "Consolas", monospace;
 }
 
 * {
@@ -29,9 +31,8 @@ body {
   min-height: 100vh;
   color: var(--ink);
   background:
-    radial-gradient(circle at top left, rgba(218, 90, 42, 0.2), transparent 30%),
-    radial-gradient(circle at top right, rgba(36, 107, 65, 0.16), transparent 22%),
-    linear-gradient(180deg, #f4efe6 0%, #efe7dc 100%);
+    radial-gradient(circle at top left, rgba(37, 99, 235, 0.14), transparent 28%),
+    linear-gradient(180deg, #f8fbff 0%, #eef4fb 100%);
   font-family: var(--font-sans);
 }
 
@@ -44,4 +45,8 @@ button,
 input,
 select {
   font: inherit;
+}
+
+::selection {
+  background: rgba(37, 99, 235, 0.18);
 }

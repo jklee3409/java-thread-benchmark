@@ -6,12 +6,12 @@ import { Panel } from "@/shared/ui/panel";
 
 export function GrafanaEmbedPanel() {
   return (
-    <Panel className="grafana-panel">
+    <Panel className="grafana-panel" id="monitoring">
       <div className="panel-head panel-head--spread">
         <div>
-          <h2>Grafana Monitoring</h2>
+          <h2>실시간 대시보드</h2>
           <p className="panel-copy">
-            Open the provisioned dashboard or inspect it directly inside the benchmark console.
+            여기서 추세를 보고, 더 자세한 탐색이 필요하면 전체 화면으로 전환하세요.
           </p>
         </div>
         <a
@@ -20,13 +20,13 @@ export function GrafanaEmbedPanel() {
           rel="noreferrer"
           className="ghost-link"
         >
-          Open full dashboard
+          전체 화면으로 열기
         </a>
       </div>
 
       <div className="grafana-frame-shell">
         <iframe
-          title="Grafana Thread Benchmark Dashboard"
+          title="Grafana 스레드 벤치마크 대시보드"
           src={getGrafanaEmbedUrl()}
           className="grafana-frame"
           loading="lazy"

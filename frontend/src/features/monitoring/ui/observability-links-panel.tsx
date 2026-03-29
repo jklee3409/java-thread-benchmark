@@ -6,9 +6,14 @@ export function ObservabilityLinksPanel() {
 
   return (
     <Panel className="observability-panel">
-      <div className="panel-head">
-        <h2>Observability Shortcuts</h2>
-        <span>{links.length} endpoints</span>
+      <div className="panel-head panel-head--spread">
+        <div>
+          <h2>분석 도구</h2>
+          <p className="panel-copy">
+            요약만으로 부족할 때 바로 내려갈 수 있는 외부 도구들입니다.
+          </p>
+        </div>
+        <span>{links.length}개</span>
       </div>
 
       <div className="observability-links">

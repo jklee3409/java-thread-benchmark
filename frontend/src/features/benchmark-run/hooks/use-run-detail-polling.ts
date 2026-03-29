@@ -55,7 +55,11 @@ export function useRunDetailPolling({
         }
       } catch (error) {
         if (active) {
-          onErrorRef.current(error instanceof Error ? error.message : "Unknown error");
+          onErrorRef.current(
+            error instanceof Error && error.message
+              ? `실험 상세를 불러오지 못했습니다. ${error.message}`
+              : "실험 상세를 불러오지 못했습니다.",
+          );
         }
       }
     };

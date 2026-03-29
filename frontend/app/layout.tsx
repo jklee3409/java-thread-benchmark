@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Thread Benchmark Console",
-  description: "Virtual Thread vs Platform Thread benchmark orchestration console",
+  title: "Thread Bench Lab",
+  description: "Virtual Thread와 Platform Thread 비교를 위한 성능 실험 대시보드",
 };
 
 export default function RootLayout({

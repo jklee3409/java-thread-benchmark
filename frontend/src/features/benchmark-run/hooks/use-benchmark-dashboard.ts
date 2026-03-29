@@ -4,6 +4,8 @@ import { useEffect, useState, useTransition } from "react";
 import {
   BenchmarkOptionsResponse,
   BenchmarkRunSummaryResponse,
+  runStatusLabel,
+  threadModeLabel,
 } from "@/entities/benchmark";
 import {
   createBenchmarkRun,
@@ -31,7 +33,7 @@ export function useBenchmarkDashboard() {
   const [comparisonRunId, setComparisonRunId] = useState<number | null>(null);
   const [form, setForm] = useState<RunFormState>(EMPTY_RUN_FORM);
   const [message, setMessage] = useState(
-    "Select a backend target and create a benchmark run.",
+    "실험 대상을 선택하고 조건을 입력한 뒤 실험을 실행하세요.",
   );
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
@@ -65,9 +67,9 @@ export function useBenchmarkDashboard() {
         return loadedRuns.find((run) => run.id !== nextSelectedRunId)?.id ?? null;
       });
 
-      setMessage(`Current mode: ${loadedOptions.currentMode}`);
+      setMessage(`현재 연결 대상: ${threadModeLabel(loadedOptions.currentMode)}`);
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Unknown error");
+      setError(toUserErrorMessage(loadError, "대시보드 정보를 불러오지 못했습니다."));
     }
   }
 
@@ -93,7 +95,7 @@ export function useBenchmarkDashboard() {
         return refreshedRuns.find((run) => run.id !== nextRunId)?.id ?? null;
       });
     } catch (refreshError) {
-      setError(refreshError instanceof Error ? refreshError.message : "Unknown error");
+      setError(toUserErrorMessage(refreshError, "실험 목록을 새로고침하지 못했습니다."));
     }
   }
 
@@ -106,10 +108,10 @@ export function useBenchmarkDashboard() {
         toCreateBenchmarkRunPayload(form, options),
       );
 
-      setMessage(`Run #${created.id} created. status=${created.status}`);
+      setMessage(`실험 #${created.id} 생성 완료. 현재 상태: ${runStatusLabel(created.status)}`);
       await refreshRuns(created.id);
     } catch (createError) {
-      setError(createError instanceof Error ? createError.message : "Unknown error");
+      setError(toUserErrorMessage(createError, "실험을 생성하지 못했습니다."));
     }
   }
 
@@ -149,11 +151,11 @@ export function useBenchmarkDashboard() {
     setForm,
     presetTargets: [
       {
-        label: "Platform",
+        label: "플랫폼 스레드",
         url: DEFAULT_PLATFORM_API_BASE_URL,
       },
       {
-        label: "Virtual",
+        label: "버추얼 스레드",
         url: DEFAULT_VIRTUAL_API_BASE_URL,
       },
     ],
@@ -161,4 +163,11 @@ export function useBenchmarkDashboard() {
     refreshRuns,
     submitRun,
   };
+}
+
+function toUserErrorMessage(error: unknown, prefix: string): string {
+  if (error instanceof Error && error.message) {
+    return `${prefix} ${error.message}`;
+  }
+  return prefix;
 }

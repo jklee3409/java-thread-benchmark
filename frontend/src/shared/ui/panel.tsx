@@ -1,10 +1,12 @@
-import { PropsWithChildren } from "react";
+import { ComponentPropsWithoutRef, PropsWithChildren } from "react";
 import { cn } from "@/shared/lib/cn";
 
-type PanelProps = PropsWithChildren<{
-  className?: string;
-}>;
+type PanelProps = PropsWithChildren<ComponentPropsWithoutRef<"section">>;
 
-export function Panel({ className, children }: PanelProps) {
-  return <section className={cn("panel", className)}>{children}</section>;
+export function Panel({ className, children, ...props }: PanelProps) {
+  return (
+    <section {...props} className={cn("panel", className)}>
+      {children}
+    </section>
+  );
 }

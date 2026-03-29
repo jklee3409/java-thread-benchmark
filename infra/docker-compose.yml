@@ -34,6 +34,87 @@ services:
     volumes:
       - ./wiremock:/home/wiremock
 
+  backend-platform:
+    build:
+      context: ../backend
+    container_name: threadbench-backend-platform
+    environment:
+      SPRING_PROFILES_ACTIVE: local-docker,platform
+      FRONTEND_ORIGIN: http://localhost:3000
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/threadbench?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+      SPRING_DATASOURCE_USERNAME: threadbench
+      SPRING_DATASOURCE_PASSWORD: threadbench
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      EXTERNAL_API_BASE_URL: http://wiremock:8080
+      BENCHMARK_EXECUTION_BASE_URL: http://127.0.0.1:8080
+      BENCHMARK_EXECUTION_RESULTS_DIR: /app/results
+    ports:
+      - "8080:8080"
+    volumes:
+      - backend_platform_results:/app/results
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      wiremock:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/actuator/health >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  backend-virtual:
+    build:
+      context: ../backend
+    container_name: threadbench-backend-virtual
+    environment:
+      SPRING_PROFILES_ACTIVE: local-docker,virtual
+      FRONTEND_ORIGIN: http://localhost:3000
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/threadbench?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+      SPRING_DATASOURCE_USERNAME: threadbench
+      SPRING_DATASOURCE_PASSWORD: threadbench
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      EXTERNAL_API_BASE_URL: http://wiremock:8080
+      BENCHMARK_EXECUTION_BASE_URL: http://127.0.0.1:8081
+      BENCHMARK_EXECUTION_RESULTS_DIR: /app/results
+    ports:
+      - "8081:8081"
+    volumes:
+      - backend_virtual_results:/app/results
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      wiremock:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8081/actuator/health >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  frontend:
+    build:
+      context: ../frontend
+    container_name: threadbench-frontend
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:8080
+      NEXT_PUBLIC_PLATFORM_API_BASE_URL: http://localhost:8080
+      NEXT_PUBLIC_VIRTUAL_API_BASE_URL: http://localhost:8081
+      NEXT_PUBLIC_GRAFANA_BASE_URL: http://localhost:13000
+      NEXT_PUBLIC_PROMETHEUS_BASE_URL: http://localhost:19090
+      NEXT_PUBLIC_WIREMOCK_BASE_URL: http://localhost:18089
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend-platform:
+        condition: service_healthy
+
   prometheus:
     image: prom/prometheus:latest
     container_name: threadbench-prometheus
@@ -44,8 +125,11 @@ services:
       - "19090:9090"
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    depends_on:
+      backend-platform:
+        condition: service_healthy
+      backend-virtual:
+        condition: service_healthy
 
   grafana:
     image: grafana/grafana:latest
@@ -55,6 +139,9 @@ services:
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_SECURITY_ALLOW_EMBEDDING: "true"
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
     volumes:
       - ./grafana/provisioning:/etc/grafana/provisioning
       - grafana_data:/var/lib/grafana
@@ -66,3 +153,5 @@ volumes:
   mysql_data:
   redis_data:
   grafana_data:
+  backend_platform_results:
+  backend_virtual_results:

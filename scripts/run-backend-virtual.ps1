@@ -1,3 +1,3 @@
 $ErrorActionPreference = "Stop"
 Set-Location $PSScriptRoot\..\backend
-mvn spring-boot:run "-Dspring-boot.run.profiles=local-docker,virtual"
+.\gradlew.bat bootRun --args="--spring.profiles.active=local-docker,virtual"

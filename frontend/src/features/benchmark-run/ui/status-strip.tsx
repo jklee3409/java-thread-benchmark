@@ -13,28 +13,21 @@ export function StatusStrip({
   selectedRunId,
   comparisonRunId,
 }: StatusStripProps) {
+  const items = [
+    { label: "Mode", value: threadModeLabel(mode) },
+    { label: "Runs", value: `${runCount}` },
+    { label: "Run", value: selectedRunId == null ? "-" : `#${selectedRunId}` },
+    { label: "Compare", value: comparisonRunId == null ? "-" : `#${comparisonRunId}` },
+  ];
+
   return (
     <section className="status-strip" aria-label="실험 상태 요약">
-      <div className="status-card">
-        <span className="status-card-label">현재 대상</span>
-        <strong className="status-card-value">{threadModeLabel(mode)}</strong>
-      </div>
-      <div className="status-card">
-        <span className="status-card-label">총 실행 수</span>
-        <strong className="status-card-value">{runCount}건</strong>
-      </div>
-      <div className="status-card">
-        <span className="status-card-label">선택 Run ID</span>
-        <strong className="status-card-value">
-          {selectedRunId == null ? "-" : `#${selectedRunId}`}
-        </strong>
-      </div>
-      <div className="status-card">
-        <span className="status-card-label">비교 Run ID</span>
-        <strong className="status-card-value">
-          {comparisonRunId == null ? "-" : `#${comparisonRunId}`}
-        </strong>
-      </div>
+      {items.map((item) => (
+        <div key={item.label} className="status-chip">
+          <span className="status-chip-label">{item.label}</span>
+          <strong className="status-chip-value">{item.value}</strong>
+        </div>
+      ))}
     </section>
   );
 }

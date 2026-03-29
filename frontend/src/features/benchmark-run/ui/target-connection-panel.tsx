@@ -1,6 +1,5 @@
 import { cn } from "@/shared/lib/cn";
 import { Panel } from "@/shared/ui/panel";
-import { StatusPill } from "@/shared/ui/status-pill";
 
 type TargetConnectionPanelProps = {
   apiBaseUrl: string;
@@ -22,13 +21,8 @@ export function TargetConnectionPanel({
 }: TargetConnectionPanelProps) {
   return (
     <Panel className="target-panel">
-      <div className="panel-head panel-head--spread">
-        <div>
-          <p className="section-label">대상 선택</p>
-          <h3>백엔드 대상</h3>
-          <p className="panel-copy">실행과 조회는 이 주소를 기준으로 진행됩니다.</p>
-        </div>
-        <StatusPill tone="accent">활성 대상</StatusPill>
+      <div className="panel-head">
+        <h3>Target</h3>
       </div>
 
       <div className="target-grid">
@@ -46,22 +40,21 @@ export function TargetConnectionPanel({
       </div>
 
       <label className="field">
-        <span className="field-label">직접 입력</span>
+        <span className="field-label">API</span>
         <input
           value={apiBaseUrl}
           onChange={(event) => onApiBaseUrlChange(event.target.value)}
           placeholder="http://localhost:8080"
           className="field-control"
         />
-        <span className="field-help">필요하면 커스텀 주소로 결과 조회 대상을 바꿀 수 있습니다.</span>
       </label>
 
       <div className="panel-actions">
         <button type="button" className="secondary" onClick={onRefreshConnection}>
-          연결 확인
+          Refresh
         </button>
         <button type="button" className="secondary" onClick={onReloadRuns}>
-          이력 새로고침
+          Runs
         </button>
       </div>
     </Panel>

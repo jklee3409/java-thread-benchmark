@@ -20,30 +20,16 @@ const TABS: Array<{
   id: ResultTab;
   label: string;
 }> = [
-  { id: "summary", label: "요약" },
-  { id: "layers", label: "레이어 메트릭" },
-  { id: "notes", label: "병목 노트" },
+  { id: "summary", label: "Summary" },
+  { id: "layers", label: "Layers" },
+  { id: "notes", label: "Notes" },
 ];
 
 export function ResultSection({ run, isLoading, isPolling }: ResultSectionProps) {
   const [activeTab, setActiveTab] = useState<ResultTab>("summary");
 
   return (
-    <section
-      className="dashboard-section result-section-anchor"
-      id="results"
-      tabIndex={-1}
-    >
-      <div className="section-head">
-        <div>
-          <p className="section-label">결과</p>
-          <h2>선택 Run을 상세 분석합니다.</h2>
-          <p className="section-subtitle">
-            요약, 레이어 메트릭, 병목 노트를 구분해 보고서처럼 검토할 수 있습니다.
-          </p>
-        </div>
-      </div>
-
+    <section className="dashboard-section result-section-anchor" id="results" tabIndex={-1}>
       <div className="result-tabs" role="tablist" aria-label="결과 분석 탭">
         {TABS.map((tab) => (
           <button

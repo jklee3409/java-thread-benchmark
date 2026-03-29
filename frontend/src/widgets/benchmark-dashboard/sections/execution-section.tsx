@@ -41,56 +41,43 @@ export function ExecutionSection({
         : runStatusTone(run.status);
 
   const stateLabel = error
-    ? "확인 필요"
+    ? "Check"
     : isSubmitting
-      ? "실행 요청 중"
+      ? "Queueing"
       : isRefreshingRuns
-        ? "이력 갱신 중"
+        ? "Syncing"
         : isPolling
-          ? "실시간 추적 중"
+          ? "Live"
           : run == null
-            ? "대기"
+            ? "Idle"
             : runStatusLabel(run.status);
 
   return (
     <section className="dashboard-section" id="execution">
-      <div className="section-head">
-        <div>
-          <p className="section-label">실행</p>
-          <h2>실행 상태와 핵심 지표를 확인합니다.</h2>
-          <p className="section-subtitle">
-            실행 요청 이후 상태 변화와 최근 선택 Run의 요약 지표를 즉시 확인합니다.
-          </p>
-        </div>
-      </div>
-
       <div className="execution-layout">
         <Panel className="state-panel">
           <div className="panel-head panel-head--spread">
-            <div>
-              <h3>실행 상태</h3>
-              <p className="panel-copy">실행 메시지와 오류를 이 구역에서 확인합니다.</p>
-            </div>
+            <h3>State</h3>
             <StatusPill tone={stateTone}>{stateLabel}</StatusPill>
           </div>
 
           <div className="state-stack">
             <div className="state-item">
-              <span className="state-item-label">선택 Run</span>
+              <span className="state-item-label">Run</span>
               <strong className="state-item-value">
                 {run == null ? "-" : `#${run.id}`}
               </strong>
             </div>
             <div className="state-item">
-              <span className="state-item-label">대상 / 시나리오</span>
+              <span className="state-item-label">Target</span>
               <strong className="state-item-value">
                 {run == null
-                  ? "실행 전"
+                  ? "-"
                   : `${threadModeLabel(run.mode)} / ${scenarioLabel(run.scenario)}`}
               </strong>
             </div>
             <div className="state-item">
-              <span className="state-item-label">최근 시각</span>
+              <span className="state-item-label">Time</span>
               <strong className="state-item-value">
                 {run == null
                   ? "-"
@@ -99,31 +86,23 @@ export function ExecutionSection({
             </div>
           </div>
 
-          {isLoading ? (
-            <div className="alert alert-info">실행 데이터를 불러오는 중입니다.</div>
-          ) : null}
-
+          {isLoading ? <div className="alert alert-info">Loading...</div> : null}
           {error ? (
             <div className="alert alert-danger">{error}</div>
           ) : (
-            <div className="alert alert-info">
-              {message || "실험 설정 후 부하 테스트를 실행하세요."}
-            </div>
+            <div className="alert alert-info">{message || "Ready"}</div>
           )}
         </Panel>
 
         <Panel className="state-panel">
           <div className="panel-head">
-            <div>
-              <h3>최근 요약</h3>
-              <p className="panel-copy">처리량과 지연 지표를 우선 확인합니다.</p>
-            </div>
+            <h3>Metrics</h3>
           </div>
 
           {run == null ? (
             <EmptyState
               title="선택된 실행이 없습니다."
-              message="설정을 저장한 뒤 실행하거나 이력에서 Run을 선택하면 요약 지표가 표시됩니다."
+              message="실행 후 Run을 선택하면 지표가 표시됩니다."
             />
           ) : (
             <>
@@ -131,30 +110,30 @@ export function ExecutionSection({
                 <MetricCard
                   label="TPS"
                   value={`${formatNumber(run.throughput)} req/s`}
-                  helper="초당 처리량"
+                  helper="throughput"
                 />
                 <MetricCard
-                  label="p95 지연"
+                  label="p95"
                   value={`${formatNumber(run.p95LatencyMs)} ms`}
-                  helper="상위 5% 지연"
+                  helper="latency"
                 />
                 <MetricCard
-                  label="p99 지연"
+                  label="p99"
                   value={`${formatNumber(run.p99LatencyMs)} ms`}
-                  helper="꼬리 지연"
+                  helper="tail"
                 />
                 <MetricCard
-                  label="오류율"
+                  label="Error"
                   value={`${formatNumber(run.errorRate)} %`}
-                  helper="전체 요청 대비 실패 비율"
+                  helper="rate"
                   tone={run.errorRate > 0 ? "danger" : "success"}
                 />
               </div>
 
               <div className="summary-meta">
-                <span>총 요청 {run.totalSamples}건</span>
-                <span>스레드 수 {run.threadCount}</span>
-                <span>지속 시간 {run.durationSeconds}초</span>
+                <span>{run.totalSamples} req</span>
+                <span>{run.threadCount} threads</span>
+                <span>{run.durationSeconds}s</span>
               </div>
             </>
           )}

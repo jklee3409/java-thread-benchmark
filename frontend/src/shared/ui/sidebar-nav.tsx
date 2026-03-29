@@ -7,18 +7,15 @@ import { cn } from "@/shared/lib/cn";
 const NAV_ITEMS = [
   {
     href: "/",
-    label: "홈",
-    description: "실험 흐름",
+    label: "Overview",
   },
   {
     href: "/dashboard",
-    label: "대시보드",
-    description: "실행과 분석",
+    label: "Benchmark",
   },
   {
     href: "/monitoring",
-    label: "모니터링",
-    description: "실시간 추적",
+    label: "Monitor",
   },
 ] as const;
 
@@ -39,8 +36,7 @@ export function SidebarNav() {
             href={item.href}
             className={cn("sidebar-link", isActive && "sidebar-link-active")}
           >
-            <strong>{item.label}</strong>
-            <span className="sidebar-link-copy">{item.description}</span>
+            {item.label}
           </Link>
         );
       })}

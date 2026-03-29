@@ -2,11 +2,16 @@ import {
   getGrafanaDashboardUrl,
   getGrafanaEmbedUrl,
 } from "@/features/monitoring/model/grafana-links";
+import { cn } from "@/shared/lib/cn";
 import { Panel } from "@/shared/ui/panel";
 
-export function GrafanaEmbedPanel() {
+type GrafanaEmbedPanelProps = {
+  compact?: boolean;
+};
+
+export function GrafanaEmbedPanel({ compact = false }: GrafanaEmbedPanelProps) {
   return (
-    <Panel className="grafana-panel">
+    <Panel className={cn("grafana-panel", compact && "grafana-panel--compact")}>
       <div className="panel-head panel-head--spread">
         <div>
           <h3>Grafana 대시보드</h3>
@@ -28,7 +33,7 @@ export function GrafanaEmbedPanel() {
         <iframe
           title="Grafana Thread Benchmark Dashboard"
           src={getGrafanaEmbedUrl()}
-          className="grafana-frame"
+          className={cn("grafana-frame", compact && "grafana-frame--compact")}
           loading="lazy"
           referrerPolicy="strict-origin-when-cross-origin"
         />

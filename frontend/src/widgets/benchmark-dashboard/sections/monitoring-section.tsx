@@ -1,28 +1,38 @@
 import Link from "next/link";
+import { cn } from "@/shared/lib/cn";
 import {
   GrafanaEmbedPanel,
   ObservabilityLinksPanel,
 } from "@/features/monitoring";
 
-export function MonitoringSection() {
-  return (
-    <section className="dashboard-section" id="monitoring">
-      <div className="section-head section-head--spread">
-        <div>
-          <p className="section-label">모니터링</p>
-          <h2>실시간 추적</h2>
-          <p className="section-subtitle">
-            Grafana 대시보드를 중심으로 JVM, DB, Redis, 외부 API 지표를 운영 화면처럼
-            확인합니다.
-          </p>
-        </div>
-        <Link href="/monitoring" className="secondary">
-          전용 화면 열기
-        </Link>
-      </div>
+type MonitoringSectionProps = {
+  compact?: boolean;
+  showDedicatedLink?: boolean;
+};
 
-      <div className="section-stack">
-        <GrafanaEmbedPanel />
+export function MonitoringSection({
+  compact = false,
+  showDedicatedLink = true,
+}: MonitoringSectionProps) {
+  return (
+    <section
+      className={cn(
+        "dashboard-section",
+        "monitoring-section",
+        compact && "monitoring-section--compact",
+      )}
+      id="monitoring"
+    >
+      {showDedicatedLink ? (
+        <div className="monitoring-actions">
+          <Link href="/monitoring" className="secondary">
+            Full Screen
+          </Link>
+        </div>
+      ) : null}
+
+      <div className={cn("monitoring-layout", compact && "monitoring-layout--compact")}>
+        <GrafanaEmbedPanel compact={compact} />
         <ObservabilityLinksPanel />
       </div>
     </section>

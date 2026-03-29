@@ -7,7 +7,12 @@ scrape_configs:
     static_configs:
       - targets: ["prometheus:9090"]
 
-  - job_name: "thread-benchmark-backend"
+  - job_name: "thread-benchmark-platform"
     metrics_path: /actuator/prometheus
     static_configs:
-      - targets: ["host.docker.internal:8080"]
+      - targets: ["backend-platform:8080"]
+
+  - job_name: "thread-benchmark-virtual"
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["backend-virtual:8081"]

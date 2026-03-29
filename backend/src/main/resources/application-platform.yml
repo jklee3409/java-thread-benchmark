@@ -1,13 +1,14 @@
-spring:
-  threads:
-    virtual:
-      enabled: false
-
 server:
+  port: 8080
   tomcat:
     threads:
       max: 200
       min-spare: 20
+
+spring:
+  threads:
+    virtual:
+      enabled: false
 
 benchmark:
   mode: PLATFORM

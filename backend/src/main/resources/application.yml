@@ -18,6 +18,22 @@ spring:
       enabled: false
 
 management:
+  metrics:
+    distribution:
+      percentiles:
+        "[http.server.requests]": 0.95,0.99
+        "[benchmark.db.read]": 0.95,0.99
+        "[benchmark.redis.get]": 0.95,0.99
+        "[benchmark.external.call]": 0.95,0.99
+        "[benchmark.workload.mixed]": 0.95,0.99
+        "[benchmark.workload.contention]": 0.95,0.99
+      percentiles-histogram:
+        "[http.server.requests]": true
+        "[benchmark.db.read]": true
+        "[benchmark.redis.get]": true
+        "[benchmark.external.call]": true
+        "[benchmark.workload.mixed]": true
+        "[benchmark.workload.contention]": true
   endpoints:
     web:
       exposure:
@@ -38,10 +54,24 @@ management:
 server:
   port: 8080
 
+frontend:
+  origin: http://localhost:3000
+
 benchmark:
   mode: PLATFORM
   environment: local
   default-external-delay-ms: 100
+  execution:
+    jmeter-executable: jmeter
+    results-dir: build/benchmark-results
+    default-thread-count: 50
+    default-ramp-up-seconds: 5
+    default-duration-seconds: 60
+    default-loop-count: 10000
+    default-db-hold-ms: 150
+    executor-threads: 2
+    process-timeout-buffer-seconds: 30
+    sampling-interval-seconds: 5
 
 external-api:
   base-url: http://localhost:18089

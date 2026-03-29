@@ -1,21 +1,29 @@
 import {
   BenchmarkRunDetailResponse,
   BenchmarkRunSummaryResponse,
+  formatDateTime,
   formatDelta,
   formatNumber,
   layerLabel,
+  runStatusLabel,
+  runStatusTone,
   scenarioLabel,
   threadModeLabel,
 } from "@/entities/benchmark";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { MetricCard } from "@/shared/ui/metric-card";
 import { Panel } from "@/shared/ui/panel";
+import { StatusPill } from "@/shared/ui/status-pill";
 
 type RunComparisonPanelProps = {
   runs: BenchmarkRunSummaryResponse[];
   baselineRun: BenchmarkRunDetailResponse | null;
   comparisonRun: BenchmarkRunDetailResponse | null;
+  baselineRunId: number | null;
   comparisonRunId: number | null;
+  isBaselineLoading: boolean;
+  isComparisonLoading: boolean;
+  onBaselineRunIdChange: (runId: number | null) => void;
   onComparisonRunIdChange: (runId: number | null) => void;
 };
 
@@ -23,140 +31,146 @@ export function RunComparisonPanel({
   runs,
   baselineRun,
   comparisonRun,
+  baselineRunId,
   comparisonRunId,
+  isBaselineLoading,
+  isComparisonLoading,
+  onBaselineRunIdChange,
   onComparisonRunIdChange,
 }: RunComparisonPanelProps) {
-  const comparisonCandidates = runs.filter((run) => run.id !== baselineRun?.id);
+  const comparisonCandidates = runs.filter((run) => run.id !== baselineRunId);
 
   return (
-    <Panel className="comparison-panel" id="comparison-panel">
-      <div className="panel-head panel-head--spread">
-        <div>
-          <h2>결과 비교</h2>
-          <p className="panel-copy">
-            기준 결과를 고른 뒤 비교 대상을 선택하면 차이만 바로 확인할 수 있습니다.
-          </p>
-        </div>
-
-        <label className="field field--compact">
-          <span>비교할 결과</span>
+    <Panel className="comparison-panel">
+      <div className="comparison-controls">
+        <label className="field">
+          <span className="field-label">기준 Run</span>
           <select
-            value={comparisonRunId ?? ""}
+            value={baselineRunId ?? ""}
+            className="field-control"
             onChange={(event) =>
-              onComparisonRunIdChange(
-                event.target.value ? Number(event.target.value) : null,
+              onBaselineRunIdChange(
+                event.target.value === "" ? null : Number(event.target.value),
               )
             }
           >
-            <option value="">비교 안 함</option>
+            <option value="">선택 안 함</option>
+            {runs.map((run) => (
+              <option key={run.id} value={run.id}>
+                #{run.id} / {threadModeLabel(run.mode)} / {scenarioLabel(run.scenario)}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="field">
+          <span className="field-label">비교 Run</span>
+          <select
+            value={comparisonRunId ?? ""}
+            className="field-control"
+            onChange={(event) =>
+              onComparisonRunIdChange(
+                event.target.value === "" ? null : Number(event.target.value),
+              )
+            }
+          >
+            <option value="">선택 안 함</option>
             {comparisonCandidates.map((run) => (
               <option key={run.id} value={run.id}>
-                #{run.id} {threadModeLabel(run.mode)} · {scenarioLabel(run.scenario)}
+                #{run.id} / {threadModeLabel(run.mode)} / {scenarioLabel(run.scenario)}
               </option>
             ))}
           </select>
         </label>
       </div>
 
-      {baselineRun == null || comparisonRun == null ? (
+      {runs.length < 2 ? (
         <EmptyState
-          title="비교할 두 실험을 아직 고르지 않았습니다."
-          message="기준 결과를 먼저 선택한 뒤, 오른쪽 선택 상자에서 비교 대상을 고르면 차이가 계산됩니다."
+          title="비교할 실행이 부족합니다."
+          message="최소 2개의 Run이 있어야 비교 표를 만들 수 있습니다."
+        />
+      ) : isBaselineLoading || isComparisonLoading ? (
+        <div className="alert alert-info">비교 대상을 불러오는 중입니다.</div>
+      ) : baselineRun == null || comparisonRun == null ? (
+        <EmptyState
+          title="비교할 Run을 선택하세요."
+          message="기준 Run과 비교 Run을 각각 선택하면 핵심 지표 차이가 계산됩니다."
         />
       ) : (
-        <div className="comparison-content">
-          <p className="comparison-note">모든 차이는 `비교 대상 - 기준 결과` 기준으로 계산합니다.</p>
-          <div className="comparison-highlight">
-            <strong>
-              {comparisonRun.throughput >= baselineRun.throughput
-                ? "비교 대상이 더 많은 요청을 처리합니다."
-                : "기준 결과가 더 높은 처리량을 보입니다."}
-            </strong>
-            <p>처리량만 보지 말고 지연 시간과 오류율도 함께 확인하세요.</p>
+        <div className="section-stack">
+          <div className="comparison-overview">
+            <RunCard title="기준 Run" run={baselineRun} />
+            <RunCard title="비교 Run" run={comparisonRun} />
           </div>
 
-          <div className="comparison-header">
-            <div className="comparison-run">
-              <span>기준 결과</span>
-              <strong>실험 #{baselineRun.id}</strong>
-              <p>
-                {threadModeLabel(baselineRun.mode)} · {scenarioLabel(baselineRun.scenario)}
-              </p>
-            </div>
-            <div className="comparison-run">
-              <span>비교 대상</span>
-              <strong>실험 #{comparisonRun.id}</strong>
-              <p>
-                {threadModeLabel(comparisonRun.mode)} · {scenarioLabel(comparisonRun.scenario)}
-              </p>
-            </div>
-          </div>
-
-          <div className="metric-grid metric-grid--comparison">
+          <div className="metric-grid metric-grid--four">
             <MetricCard
-              label="처리량 차이"
+              label="TPS 차이"
               value={`${formatDelta(comparisonRun.throughput - baselineRun.throughput)} req/s`}
-              helper="양수면 비교 대상이 더 많이 처리"
-              tone={comparisonRun.throughput >= baselineRun.throughput ? "success" : "danger"}
-            />
-            <MetricCard
-              label="P95 차이"
-              value={`${formatDelta(comparisonRun.p95LatencyMs - baselineRun.p95LatencyMs)} ms`}
-              helper="음수면 비교 대상이 더 빠름"
+              helper="양수면 비교 Run 우세"
               tone={
-                comparisonRun.p95LatencyMs <= baselineRun.p95LatencyMs ? "success" : "danger"
+                comparisonRun.throughput >= baselineRun.throughput ? "success" : "danger"
               }
             />
             <MetricCard
-              label="P99 차이"
-              value={`${formatDelta(comparisonRun.p99LatencyMs - baselineRun.p99LatencyMs)} ms`}
-              helper="꼬리 지연 비교"
+              label="p95 차이"
+              value={`${formatDelta(comparisonRun.p95LatencyMs - baselineRun.p95LatencyMs)} ms`}
+              helper="음수면 비교 Run 우세"
               tone={
-                comparisonRun.p99LatencyMs <= baselineRun.p99LatencyMs ? "success" : "danger"
+                comparisonRun.p95LatencyMs <= baselineRun.p95LatencyMs
+                  ? "success"
+                  : "danger"
+              }
+            />
+            <MetricCard
+              label="p99 차이"
+              value={`${formatDelta(comparisonRun.p99LatencyMs - baselineRun.p99LatencyMs)} ms`}
+              helper="음수면 비교 Run 우세"
+              tone={
+                comparisonRun.p99LatencyMs <= baselineRun.p99LatencyMs
+                  ? "success"
+                  : "danger"
               }
             />
             <MetricCard
               label="오류율 차이"
               value={`${formatDelta(comparisonRun.errorRate - baselineRun.errorRate)} %`}
-              helper="음수면 비교 대상 오류율이 낮음"
-              tone={comparisonRun.errorRate <= baselineRun.errorRate ? "success" : "danger"}
+              helper="음수면 비교 Run 우세"
+              tone={
+                comparisonRun.errorRate <= baselineRun.errorRate ? "success" : "danger"
+              }
             />
           </div>
 
-          <div className="comparison-table">
-            <div className="comparison-row">
-              <span>동시 사용자 수</span>
-              <strong>{baselineRun.threadCount}</strong>
-              <strong>{comparisonRun.threadCount}</strong>
-            </div>
-            <div className="comparison-row">
-              <span>DB 풀 크기</span>
-              <strong>{baselineRun.connectionPoolSize}</strong>
-              <strong>{comparisonRun.connectionPoolSize}</strong>
-            </div>
-            <div className="comparison-row">
-              <span>최근 DB 대기 수</span>
-              <strong>{latestPendingConnections(baselineRun)}</strong>
-              <strong>{latestPendingConnections(comparisonRun)}</strong>
-            </div>
-            <div className="comparison-row">
-              <span>주요 병목 레이어</span>
-              <strong>
-                {baselineRun.benchmarkSummary?.bottleneckLayer
-                  ? layerLabel(baselineRun.benchmarkSummary.bottleneckLayer)
-                  : "-"}
-              </strong>
-              <strong>
-                {comparisonRun.benchmarkSummary?.bottleneckLayer
-                  ? layerLabel(comparisonRun.benchmarkSummary.bottleneckLayer)
-                  : "-"}
-              </strong>
-            </div>
-            <div className="comparison-row">
-              <span>요약</span>
-              <strong>{shortSummary(baselineRun)}</strong>
-              <strong>{shortSummary(comparisonRun)}</strong>
-            </div>
+          <div className="table-shell">
+            <table className="comparison-table">
+              <thead>
+                <tr>
+                  <th>지표</th>
+                  <th>기준 Run</th>
+                  <th>비교 Run</th>
+                  <th>차이</th>
+                </tr>
+              </thead>
+              <tbody>
+                {buildRows(baselineRun, comparisonRun).map((row) => (
+                  <tr key={row.label}>
+                    <td>{row.label}</td>
+                    <td>{row.baseline}</td>
+                    <td>{row.comparison}</td>
+                    <td
+                      className={
+                        row.deltaTone
+                          ? `comparison-delta comparison-delta--${row.deltaTone}`
+                          : undefined
+                      }
+                    >
+                      {row.delta}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
@@ -164,16 +178,90 @@ export function RunComparisonPanel({
   );
 }
 
-function latestPendingConnections(run: BenchmarkRunDetailResponse): string {
-  const latest = run.metricSnapshots.at(-1);
-  return latest == null ? "-" : formatNumber(latest.pendingConnections);
+function RunCard({
+  title,
+  run,
+}: {
+  title: string;
+  run: BenchmarkRunDetailResponse;
+}) {
+  return (
+    <div className="comparison-run-card">
+      <div className="comparison-run-head">
+        <div>
+          <span>{title}</span>
+          <strong>#{run.id}</strong>
+        </div>
+        <StatusPill tone={runStatusTone(run.status)}>
+          {runStatusLabel(run.status)}
+        </StatusPill>
+      </div>
+      <p>
+        {threadModeLabel(run.mode)} / {scenarioLabel(run.scenario)}
+      </p>
+      <p>{formatDateTime(run.completedAt ?? run.startedAt ?? run.createdAt)}</p>
+    </div>
+  );
 }
 
-function shortSummary(run: BenchmarkRunDetailResponse): string {
-  if (run.benchmarkSummary == null) {
-    return "-";
-  }
-  return run.benchmarkSummary.summaryText.length > 120
-    ? `${run.benchmarkSummary.summaryText.slice(0, 120)}...`
-    : run.benchmarkSummary.summaryText;
+function buildRows(
+  baselineRun: BenchmarkRunDetailResponse,
+  comparisonRun: BenchmarkRunDetailResponse,
+) {
+  return [
+    createNumericRow("처리량", baselineRun.throughput, comparisonRun.throughput, "req/s", "higher"),
+    createNumericRow(
+      "평균 지연",
+      baselineRun.averageLatencyMs,
+      comparisonRun.averageLatencyMs,
+      "ms",
+      "lower",
+    ),
+    createNumericRow("p95 지연", baselineRun.p95LatencyMs, comparisonRun.p95LatencyMs, "ms", "lower"),
+    createNumericRow("p99 지연", baselineRun.p99LatencyMs, comparisonRun.p99LatencyMs, "ms", "lower"),
+    createNumericRow("오류율", baselineRun.errorRate, comparisonRun.errorRate, "%", "lower"),
+    {
+      label: "총 요청",
+      baseline: `${baselineRun.totalSamples}건`,
+      comparison: `${comparisonRun.totalSamples}건`,
+      delta: `${comparisonRun.totalSamples - baselineRun.totalSamples}건`,
+      deltaTone:
+        comparisonRun.totalSamples === baselineRun.totalSamples
+          ? "neutral"
+          : comparisonRun.totalSamples > baselineRun.totalSamples
+            ? "positive"
+            : "negative",
+    },
+    {
+      label: "주요 병목",
+      baseline: baselineRun.benchmarkSummary?.bottleneckLayer
+        ? layerLabel(baselineRun.benchmarkSummary.bottleneckLayer)
+        : "-",
+      comparison: comparisonRun.benchmarkSummary?.bottleneckLayer
+        ? layerLabel(comparisonRun.benchmarkSummary.bottleneckLayer)
+        : "-",
+      delta: "-",
+      deltaTone: null,
+    },
+  ];
+}
+
+function createNumericRow(
+  label: string,
+  baseline: number,
+  comparison: number,
+  unit: string,
+  direction: "higher" | "lower",
+) {
+  const delta = comparison - baseline;
+  const improved = direction === "higher" ? delta > 0 : delta < 0;
+  const deltaTone = delta === 0 ? "neutral" : improved ? "positive" : "negative";
+
+  return {
+    label,
+    baseline: `${formatNumber(baseline)} ${unit}`,
+    comparison: `${formatNumber(comparison)} ${unit}`,
+    delta: `${formatDelta(delta)} ${unit}`,
+    deltaTone,
+  };
 }

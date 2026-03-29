@@ -36,9 +36,13 @@ export function useBenchmarkDashboard() {
     "실험 대상을 선택하고 조건을 입력한 뒤 실험을 실행하세요.",
   );
   const [error, setError] = useState("");
+  const [isLoadingDashboard, setIsLoadingDashboard] = useState(true);
+  const [isRefreshingRuns, setIsRefreshingRuns] = useState(false);
+  const [isSubmittingRun, setIsSubmittingRun] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   async function loadDashboard(baseUrl: string) {
+    setIsLoadingDashboard(true);
     setError("");
 
     try {
@@ -70,6 +74,8 @@ export function useBenchmarkDashboard() {
       setMessage(`현재 연결 대상: ${threadModeLabel(loadedOptions.currentMode)}`);
     } catch (loadError) {
       setError(toUserErrorMessage(loadError, "대시보드 정보를 불러오지 못했습니다."));
+    } finally {
+      setIsLoadingDashboard(false);
     }
   }
 
@@ -78,6 +84,7 @@ export function useBenchmarkDashboard() {
   }, [apiBaseUrl]);
 
   async function refreshRuns(preferredRunId?: number) {
+    setIsRefreshingRuns(true);
     setError("");
     try {
       const refreshedRuns = await getBenchmarkRuns(apiBaseUrl);
@@ -89,17 +96,29 @@ export function useBenchmarkDashboard() {
           : refreshedRuns[0]?.id ?? null);
       setSelectedRunId(nextRunId);
       setComparisonRunId((current) => {
-        if (current != null && current !== nextRunId && refreshedRuns.some((run) => run.id === current)) {
+        if (
+          current != null &&
+          current !== nextRunId &&
+          refreshedRuns.some((run) => run.id === current)
+        ) {
           return current;
         }
         return refreshedRuns.find((run) => run.id !== nextRunId)?.id ?? null;
       });
+      setMessage(
+        preferredRunId == null
+          ? `실행 이력을 갱신했습니다. 총 ${refreshedRuns.length}건`
+          : `실행 #${preferredRunId} 상태를 추적 중입니다.`,
+      );
     } catch (refreshError) {
       setError(toUserErrorMessage(refreshError, "실험 목록을 새로고침하지 못했습니다."));
+    } finally {
+      setIsRefreshingRuns(false);
     }
   }
 
   async function submitRun() {
+    setIsSubmittingRun(true);
     setError("");
 
     try {
@@ -108,14 +127,16 @@ export function useBenchmarkDashboard() {
         toCreateBenchmarkRunPayload(form, options),
       );
 
-      setMessage(`실험 #${created.id} 생성 완료. 현재 상태: ${runStatusLabel(created.status)}`);
+      setMessage(`실행 #${created.id} 생성 완료. 현재 상태: ${runStatusLabel(created.status)}`);
       await refreshRuns(created.id);
     } catch (createError) {
       setError(toUserErrorMessage(createError, "실험을 생성하지 못했습니다."));
+    } finally {
+      setIsSubmittingRun(false);
     }
   }
 
-  const selectedRun = useRunDetailPolling({
+  const selectedRunState = useRunDetailPolling({
     apiBaseUrl,
     runId: selectedRunId,
     onError: setError,
@@ -124,7 +145,7 @@ export function useBenchmarkDashboard() {
     },
   });
 
-  const comparisonRun = useRunDetailPolling({
+  const comparisonRunState = useRunDetailPolling({
     apiBaseUrl,
     runId: comparisonRunId,
     onError: setError,
@@ -139,11 +160,18 @@ export function useBenchmarkDashboard() {
     runs,
     selectedRunId,
     comparisonRunId,
-    selectedRun,
-    comparisonRun,
+    selectedRun: selectedRunState.runDetail,
+    selectedRunLoading: selectedRunState.isLoading,
+    selectedRunPolling: selectedRunState.isPolling,
+    comparisonRun: comparisonRunState.runDetail,
+    comparisonRunLoading: comparisonRunState.isLoading,
+    comparisonRunPolling: comparisonRunState.isPolling,
     form,
     message,
     error,
+    isLoadingDashboard,
+    isRefreshingRuns,
+    isSubmittingRun,
     isPending,
     setApiBaseUrl,
     setComparisonRunId,
@@ -155,7 +183,7 @@ export function useBenchmarkDashboard() {
         url: DEFAULT_PLATFORM_API_BASE_URL,
       },
       {
-        label: "버추얼 스레드",
+        label: "가상 스레드",
         url: DEFAULT_VIRTUAL_API_BASE_URL,
       },
     ],

@@ -1,3 +1,4 @@
+import { KeyboardEvent } from "react";
 import {
   BenchmarkRunSummaryResponse,
   formatDateTime,
@@ -23,75 +24,83 @@ export function RunHistoryList({
   selectedRunId,
   onSelectRun,
 }: RunHistoryListProps) {
+  function handleKeyDown(event: KeyboardEvent<HTMLTableRowElement>, runId: number) {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onSelectRun(runId);
+    }
+  }
+
   return (
-    <Panel className="list-panel">
+    <Panel className="history-panel">
       <div className="panel-head panel-head--spread">
         <div>
-          <h2>최근 실험 결과</h2>
-          <p className="panel-copy">
-            결과 하나를 고르면 위의 요약, 비교, 모니터링 패널이 함께 바뀝니다.
-          </p>
+          <h3>실행 이력</h3>
+          <p className="panel-copy">실험 결과를 표 형태로 정리해 다시 선택할 수 있습니다.</p>
         </div>
-        <span>{runs.length}건</span>
+        <span className="panel-copy">총 {runs.length}건</span>
       </div>
 
-      <div className="run-list">
-        {runs.length === 0 ? (
-          <EmptyState
-            title="아직 저장된 실험 결과가 없습니다."
-            message="실험을 실행하면 이 목록에 쌓이고, 선택 즉시 결과 분석 영역이 업데이트됩니다."
-          />
-        ) : (
-          runs.map((run) => (
-            <button
-              key={run.id}
-              type="button"
-              className={cn("run-item", selectedRunId === run.id && "selected")}
-              onClick={() => onSelectRun(run.id)}
-            >
-              <div className="run-item-top">
-                <div>
-                  <strong>실험 #{run.id}</strong>
-                  <p className="run-item-time">
-                    {formatDateTime(run.completedAt ?? run.startedAt ?? run.createdAt)}
-                  </p>
-                </div>
-                <StatusPill tone={runStatusTone(run.status)}>
-                  {runStatusLabel(run.status)}
-                </StatusPill>
-              </div>
-
-              <div className="run-item-grid">
-                <div>
-                  <span>스레드 방식</span>
-                  <strong>{threadModeLabel(run.mode)}</strong>
-                </div>
-                <div>
-                  <span>시나리오</span>
-                  <strong>{scenarioLabel(run.scenario)}</strong>
-                </div>
-                <div>
-                  <span>처리량</span>
-                  <strong>{formatNumber(run.throughput)} req/s</strong>
-                </div>
-                <div>
-                  <span>P95 / 오류율</span>
-                  <strong>
-                    {formatNumber(run.p95LatencyMs)} ms / {formatNumber(run.errorRate)}%
-                  </strong>
-                </div>
-              </div>
-
-              <div className="run-item-footer">
-                <span>스레드 {run.threadCount}</span>
-                <span>실행 시간 {run.durationSeconds}초</span>
-                <span>샘플 {run.totalSamples}건</span>
-                <span>{selectedRunId === run.id ? "현재 분석 중" : "클릭해 결과 보기"}</span>
-              </div>
-            </button>
-          ))
-        )}
-      </div>
+      {runs.length === 0 ? (
+        <EmptyState
+          title="저장된 실행 이력이 없습니다."
+          message="첫 실행이 완료되면 이 표에 Run이 누적됩니다."
+        />
+      ) : (
+        <div className="table-shell">
+          <table className="history-table">
+            <thead>
+              <tr>
+                <th>실행 ID</th>
+                <th>완료 시각</th>
+                <th>Thread Mode</th>
+                <th>시나리오</th>
+                <th>Throughput</th>
+                <th>p95 Latency</th>
+                <th>Error Rate</th>
+                <th>상태</th>
+                <th>상세 보기</th>
+              </tr>
+            </thead>
+            <tbody>
+              {runs.map((run) => (
+                <tr
+                  key={run.id}
+                  tabIndex={0}
+                  className={cn(selectedRunId === run.id && "history-row-active")}
+                  onClick={() => onSelectRun(run.id)}
+                  onKeyDown={(event) => handleKeyDown(event, run.id)}
+                >
+                  <td>#{run.id}</td>
+                  <td>{formatDateTime(run.completedAt ?? run.startedAt ?? run.createdAt)}</td>
+                  <td>{threadModeLabel(run.mode)}</td>
+                  <td>{scenarioLabel(run.scenario)}</td>
+                  <td>{formatNumber(run.throughput)} req/s</td>
+                  <td>{formatNumber(run.p95LatencyMs)} ms</td>
+                  <td>{formatNumber(run.errorRate)} %</td>
+                  <td>
+                    <StatusPill tone={runStatusTone(run.status)}>
+                      {runStatusLabel(run.status)}
+                    </StatusPill>
+                  </td>
+                  <td>
+                    <button
+                      type="button"
+                      className="secondary history-action"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onSelectRun(run.id);
+                      }}
+                    >
+                      상세 보기
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </Panel>
   );
 }

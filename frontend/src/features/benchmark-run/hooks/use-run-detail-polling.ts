@@ -18,6 +18,8 @@ export function useRunDetailPolling({
   onActiveRun,
 }: UseRunDetailPollingProps) {
   const [runDetail, setRunDetail] = useState<BenchmarkRunDetailResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isPolling, setIsPolling] = useState(false);
   const onErrorRef = useRef(onError);
   const onActiveRunRef = useRef(onActiveRun);
 
@@ -32,11 +34,17 @@ export function useRunDetailPolling({
   useEffect(() => {
     if (runId == null) {
       setRunDetail(null);
+      setIsLoading(false);
+      setIsPolling(false);
       return;
     }
 
     let active = true;
     let timer: ReturnType<typeof setTimeout> | undefined;
+    let isFirstLoad = true;
+    setRunDetail(null);
+    setIsLoading(true);
+    setIsPolling(false);
 
     const loadRun = async () => {
       try {
@@ -46,6 +54,7 @@ export function useRunDetailPolling({
         }
 
         setRunDetail(detail);
+        setIsPolling(isActiveRun(detail.status));
 
         if (isActiveRun(detail.status)) {
           timer = setTimeout(() => {
@@ -55,11 +64,17 @@ export function useRunDetailPolling({
         }
       } catch (error) {
         if (active) {
+          setIsPolling(false);
           onErrorRef.current(
             error instanceof Error && error.message
               ? `실험 상세를 불러오지 못했습니다. ${error.message}`
               : "실험 상세를 불러오지 못했습니다.",
           );
+        }
+      } finally {
+        if (active && isFirstLoad) {
+          setIsLoading(false);
+          isFirstLoad = false;
         }
       }
     };
@@ -74,5 +89,9 @@ export function useRunDetailPolling({
     };
   }, [apiBaseUrl, runId]);
 
-  return runDetail;
+  return {
+    runDetail,
+    isLoading,
+    isPolling,
+  };
 }

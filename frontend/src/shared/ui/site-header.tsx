@@ -1,32 +1,26 @@
-import Link from "next/link";
-import { cn } from "@/shared/lib/cn";
-
 type SiteHeaderProps = {
-  current: "home" | "dashboard";
+  title: string;
+  subtitle: string;
 };
 
-export function SiteHeader({ current }: SiteHeaderProps) {
+export function SiteHeader({ title, subtitle }: SiteHeaderProps) {
   return (
-    <header className="site-header">
+    <header className="app-header">
       <div className="site-brand">
         <span className="site-brand-mark">TB</span>
-        <div>
-          <strong>Thread Bench Lab</strong>
-          <p>스레드 성능 실험 워크스페이스</p>
+        <div className="app-header-copy">
+          <span className="app-header-label">Java 21 스레드 벤치마크</span>
+          <strong>스레드 벤치마크 콘솔</strong>
+          <p>가상 스레드와 플랫폼 스레드 실험 워크플로를 관리합니다.</p>
         </div>
       </div>
 
-      <nav className="site-nav">
-        <Link href="/" className={cn("nav-link", current === "home" && "active")}>
-          홈
-        </Link>
-        <Link
-          href="/dashboard"
-          className={cn("nav-link", current === "dashboard" && "active")}
-        >
-          실험실
-        </Link>
-      </nav>
+      <div className="app-header-actions">
+        <div className="app-header-page">
+          <span>{title}</span>
+          <strong>{subtitle}</strong>
+        </div>
+      </div>
     </header>
   );
 }

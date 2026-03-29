@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { AppShell } from "@/shared/ui/app-shell";
 
 export const metadata: Metadata = {
-  title: "Thread Bench Lab",
-  description: "Virtual Thread와 Platform Thread 비교를 위한 성능 실험 대시보드",
+  title: "Java Thread Benchmark Console",
+  description:
+    "Java 21 가상 스레드와 플랫폼 스레드 성능을 비교하고 모니터링하는 실험 콘솔입니다.",
 };
 
 export default function RootLayout({
@@ -13,7 +15,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
-      <body>{children}</body>
+      <body>
+        <AppShell>{children}</AppShell>
+      </body>
     </html>
   );
 }

@@ -1,5 +1,6 @@
 import { cn } from "@/shared/lib/cn";
 import { Panel } from "@/shared/ui/panel";
+import { StatusPill } from "@/shared/ui/status-pill";
 
 type TargetConnectionPanelProps = {
   apiBaseUrl: string;
@@ -21,22 +22,21 @@ export function TargetConnectionPanel({
 }: TargetConnectionPanelProps) {
   return (
     <Panel className="target-panel">
-      <div className="panel-head">
+      <div className="panel-head panel-head--spread">
         <div>
           <p className="section-label">대상 선택</p>
-          <h2>어느 백엔드로 실험할지 정하세요</h2>
-          <p className="panel-copy">
-            이 주소를 기준으로 실행과 결과 조회가 함께 동작합니다.
-          </p>
+          <h3>백엔드 대상</h3>
+          <p className="panel-copy">실행과 조회는 이 주소를 기준으로 진행됩니다.</p>
         </div>
+        <StatusPill tone="accent">활성 대상</StatusPill>
       </div>
 
-      <div className="target-choice-grid">
+      <div className="target-grid">
         {presetTargets.map((target) => (
           <button
             key={target.url}
             type="button"
-            className={cn("target-choice", apiBaseUrl === target.url && "is-active")}
+            className={cn("target-option", apiBaseUrl === target.url && "target-option-active")}
             onClick={() => onApiBaseUrlChange(target.url)}
           >
             <span>{target.label}</span>
@@ -46,23 +46,22 @@ export function TargetConnectionPanel({
       </div>
 
       <label className="field">
-        <span>직접 입력할 주소</span>
+        <span className="field-label">직접 입력</span>
         <input
           value={apiBaseUrl}
           onChange={(event) => onApiBaseUrlChange(event.target.value)}
           placeholder="http://localhost:8080"
-          aria-describedby="api-base-url-help"
+          className="field-control"
         />
+        <span className="field-help">필요하면 커스텀 주소로 결과 조회 대상을 바꿀 수 있습니다.</span>
       </label>
-      <p id="api-base-url-help" className="field-help">
-        프리셋을 누르면 주소가 자동으로 바뀌고, 필요하면 직접 수정할 수 있습니다.
-      </p>
-      <div className="target-actions">
+
+      <div className="panel-actions">
         <button type="button" className="secondary" onClick={onRefreshConnection}>
           연결 확인
         </button>
         <button type="button" className="secondary" onClick={onReloadRuns}>
-          결과 새로고침
+          이력 새로고침
         </button>
       </div>
     </Panel>

@@ -29,39 +29,39 @@ export function getMonitoringLinks(): MonitoringLink[] {
     {
       title: "Grafana 대시보드",
       description:
-        "HTTP, DB, Redis, 외부 API, HikariCP, JVM 스레드 지표를 한 화면에서 비교합니다.",
+        "HTTP, DB, Redis, 외부 API, HikariCP, JVM 스레드 지표를 한 화면에서 확인합니다.",
       href: getGrafanaDashboardUrl(),
       highlight: "Grafana",
     },
     {
       title: "Prometheus",
-      description: "원시 메트릭과 스크레이프 상태를 직접 확인할 수 있습니다.",
+      description: "원시 메트릭과 scrape 상태를 직접 확인합니다.",
       href: DEFAULT_PROMETHEUS_BASE_URL,
-      highlight: "메트릭",
+      highlight: "Metrics",
     },
     {
-      title: "플랫폼 스레드 API",
-      description: "플랫폼 스레드 백엔드로 직접 접근하는 엔드포인트입니다.",
+      title: "Platform Thread API",
+      description: "플랫폼 스레드 백엔드 엔드포인트입니다.",
       href: DEFAULT_PLATFORM_API_BASE_URL,
       highlight: "8080",
     },
     {
-      title: "버추얼 스레드 API",
-      description: "버추얼 스레드 백엔드로 직접 접근하는 엔드포인트입니다.",
+      title: "Virtual Thread API",
+      description: "가상 스레드 백엔드 엔드포인트입니다.",
       href: DEFAULT_VIRTUAL_API_BASE_URL,
       highlight: "8081",
     },
     {
       title: "WireMock",
-      description: "느린 외부 API와 오류 상황을 재현하는 모의 서버입니다.",
+      description: "외부 API 지연과 오류를 재현하는 모의 서버입니다.",
       href: DEFAULT_WIREMOCK_BASE_URL,
-      highlight: "모의 API",
+      highlight: "Stub",
     },
     {
-      title: "기본 GUI 대상",
-      description: "현재 대시보드가 기본값으로 연결하는 백엔드 대상입니다.",
+      title: "기본 API 대상",
+      description: "현재 프런트엔드가 기본값으로 사용하는 백엔드 주소입니다.",
       href: DEFAULT_API_BASE_URL,
-      highlight: "기본값",
+      highlight: "Default",
     },
   ];
 }

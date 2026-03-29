@@ -8,28 +8,28 @@ export function ObservabilityLinksPanel() {
     <Panel className="observability-panel">
       <div className="panel-head panel-head--spread">
         <div>
-          <h2>분석 도구</h2>
+          <h3>운영 링크</h3>
           <p className="panel-copy">
-            요약만으로 부족할 때 바로 내려갈 수 있는 외부 도구들입니다.
+            원시 메트릭, 백엔드 엔드포인트, 스텁 서버 접근 링크를 제공합니다.
           </p>
         </div>
-        <span>{links.length}개</span>
+        <span className="panel-copy">{links.length}개 링크</span>
       </div>
 
-      <div className="observability-links">
+      <div className="link-grid">
         {links.map((link) => (
           <a
             key={link.title}
             href={link.href}
             target="_blank"
-            rel="noreferrer"
-            className="observability-link-card"
+            rel="noopener noreferrer"
+            className="monitoring-link-card"
           >
             <div>
               <strong>{link.title}</strong>
               <p>{link.description}</p>
             </div>
-            <span>{link.highlight}</span>
+            <span className="link-highlight">{link.highlight}</span>
           </a>
         ))}
       </div>

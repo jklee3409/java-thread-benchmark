@@ -6,8 +6,6 @@ import {
   runStatusLabel,
   runStatusTone,
   scenarioLabel,
-  severityLabel,
-  severityTone,
   threadModeLabel,
 } from "@/entities/benchmark";
 import { EmptyState } from "@/shared/ui/empty-state";
@@ -18,174 +16,170 @@ import { StatusPill } from "@/shared/ui/status-pill";
 
 type RunDetailPanelProps = {
   run: BenchmarkRunDetailResponse | null;
+  isLoading?: boolean;
+  isPolling?: boolean;
 };
 
-export function RunDetailPanel({ run }: RunDetailPanelProps) {
+export function RunDetailPanel({
+  run,
+  isLoading = false,
+  isPolling = false,
+}: RunDetailPanelProps) {
   const latestSnapshot = run?.metricSnapshots.at(-1);
-  const recommendationText =
-    run?.benchmarkSummary?.recommendationText ??
-    "레이어별 지표와 비교 패널을 함께 보면서 병목 원인을 좁혀보세요.";
 
   return (
     <Panel className="detail-panel">
       <div className="panel-head panel-head--spread">
         <div>
-          <h2>선택한 결과 요약</h2>
+          <h3>요약 보고서</h3>
           <p className="panel-copy">
-            요약을 먼저 보고, 아래에서 설정과 런타임 상태, 병목 메모를 확인하세요.
+            선택 Run의 요청 결과, 실행 조건, 시스템 스냅샷을 함께 확인합니다.
           </p>
         </div>
-        <StatusPill tone={run == null ? "neutral" : runStatusTone(run.status)}>
-          {run == null ? "선택 없음" : runStatusLabel(run.status)}
-        </StatusPill>
+        <div className="pill-row">
+          {isPolling ? <StatusPill tone="warning">실시간 추적 중</StatusPill> : null}
+          <StatusPill tone={run == null ? "neutral" : runStatusTone(run.status)}>
+            {run == null ? "선택 없음" : runStatusLabel(run.status)}
+          </StatusPill>
+        </div>
       </div>
+
+      {isLoading ? (
+        <div className="alert alert-info">결과 보고서를 불러오는 중입니다.</div>
+      ) : null}
 
       {run == null ? (
         <EmptyState
-          title="선택한 실험 결과가 없습니다."
-          message="최근 실험 목록에서 결과 하나를 선택하면 처리량, 지연 시간, 병목 요약이 이 영역에 표시됩니다."
+          title="선택된 Run이 없습니다."
+          message="이력에서 Run을 선택하면 요청 결과와 병목 요약이 표시됩니다."
         />
       ) : (
-        <div className="detail-content">
-          <div className="result-summary-banner">
-            <div className="summary-item">
-              <span>선택 결과</span>
-              <strong>
-                실험 #{run.id} · {threadModeLabel(run.mode)}
-              </strong>
-              <p>{scenarioLabel(run.scenario)}</p>
-            </div>
-            <div className="summary-item">
-              <span>주요 병목</span>
-              <strong>
-                {run.benchmarkSummary?.bottleneckLayer
-                  ? layerLabel(run.benchmarkSummary.bottleneckLayer)
-                  : "판별 전"}
-              </strong>
-              <p>가장 먼저 확인할 레이어입니다.</p>
-            </div>
-            <div className="summary-item">
-              <span>다음 확인</span>
-              <strong>{shortText(recommendationText, 96)}</strong>
-              <p>아래 상세 정보와 함께 판단하세요.</p>
-            </div>
+        <div className="section-stack">
+          <div className="summary-callout">
+            <span className="summary-callout-title">요약</span>
+            <strong>
+              {scenarioLabel(run.scenario)} / {threadModeLabel(run.mode)}
+            </strong>
+            <p>
+              {run.benchmarkSummary?.summaryText ??
+                "요약 메시지가 아직 생성되지 않았습니다. 실행 완료 후 다시 확인하세요."}
+            </p>
+            <p className="panel-copy">
+              주요 병목:{" "}
+              {run.benchmarkSummary?.bottleneckLayer
+                ? layerLabel(run.benchmarkSummary.bottleneckLayer)
+                : "확인 중"}
+            </p>
+            {run.benchmarkSummary?.recommendationText ? (
+              <p className="panel-copy">{run.benchmarkSummary.recommendationText}</p>
+            ) : null}
           </div>
 
-          <div className="metric-grid">
+          <div className="metric-grid metric-grid--detail">
+            <MetricCard label="총 요청" value={`${run.totalSamples}건`} helper="전체 샘플 수" />
+            <MetricCard
+              label="성공"
+              value={`${run.successSamples}건`}
+              helper="성공 처리 수"
+              tone="success"
+            />
+            <MetricCard
+              label="실패"
+              value={`${run.errorSamples}건`}
+              helper="오류 처리 수"
+              tone={run.errorSamples > 0 ? "danger" : "neutral"}
+            />
+            <MetricCard
+              label="평균 지연"
+              value={`${formatNumber(run.averageLatencyMs)} ms`}
+              helper="평균 응답 시간"
+            />
+            <MetricCard
+              label="p95"
+              value={`${formatNumber(run.p95LatencyMs)} ms`}
+              helper="상위 5% 지연"
+            />
+            <MetricCard
+              label="p99"
+              value={`${formatNumber(run.p99LatencyMs)} ms`}
+              helper="꼬리 지연"
+            />
             <MetricCard
               label="처리량"
               value={`${formatNumber(run.throughput)} req/s`}
-              helper="초당 처리 요청 수"
-            />
-            <MetricCard
-              label="평균 응답 시간"
-              value={`${formatNumber(run.averageLatencyMs)} ms`}
-              helper="전체 요청 평균"
-            />
-            <MetricCard
-              label="P95"
-              value={`${formatNumber(run.p95LatencyMs)} ms`}
-              helper="상위 5% 느린 요청 기준"
-            />
-            <MetricCard
-              label="P99"
-              value={`${formatNumber(run.p99LatencyMs)} ms`}
-              helper="꼬리 지연 확인"
+              helper="초당 처리량"
             />
             <MetricCard
               label="오류율"
               value={`${formatNumber(run.errorRate)} %`}
-              helper="실패 요청 비율"
+              helper="전체 요청 대비 실패 비율"
               tone={run.errorRate > 0 ? "danger" : "success"}
             />
-            <MetricCard
-              label="성공 샘플"
-              value={`${run.successSamples}건`}
-              helper={`전체 ${run.totalSamples}건 중`}
-            />
           </div>
 
-          <div className="callout-block">
-            <h3>결과 요약</h3>
-            <p>
-              {run.benchmarkSummary?.summaryText ??
-                "아직 요약 정보가 없습니다. 실험이 끝나면 병목 요약이 여기에 표시됩니다."}
-            </p>
-            <p className="callout-subtle">
-              주요 병목 레이어:{" "}
-              {run.benchmarkSummary?.bottleneckLayer
-                ? layerLabel(run.benchmarkSummary.bottleneckLayer)
-                : "판별 전"}
-            </p>
-            <p className="callout-subtle">{recommendationText}</p>
-          </div>
-
-          <div className="detail-section">
-            <h3>실험 조건</h3>
-            <div className="kv-table">
-              <InfoRow label="시나리오" value={scenarioLabel(run.scenario)} />
-              <InfoRow label="스레드 방식" value={threadModeLabel(run.mode)} />
-              <InfoRow label="동시 사용자 수" value={String(run.threadCount)} />
-              <InfoRow label="램프업" value={`${run.rampUpSeconds}초`} />
-              <InfoRow label="실행 시간" value={`${run.durationSeconds}초`} />
-              <InfoRow label="반복 횟수" value={String(run.loopCount)} />
-              <InfoRow label="DB 풀 크기" value={String(run.connectionPoolSize)} />
-              <InfoRow
-                label="외부 API 지연"
-                value={run.externalDelayMs == null ? "-" : `${run.externalDelayMs} ms`}
-              />
-              <InfoRow
-                label="외부 API 응답 코드"
-                value={run.externalStatus == null ? "-" : String(run.externalStatus)}
-              />
-              <InfoRow label="샘플 ID" value={run.sampleId == null ? "-" : String(run.sampleId)} />
-              <InfoRow
-                label="DB hold 시간"
-                value={run.dbHoldMs == null ? "-" : `${run.dbHoldMs} ms`}
-              />
+          <div className="detail-grid">
+            <div className="detail-subpanel">
+              <h4 className="detail-section-title">실험 구성</h4>
+              <div className="info-table">
+                <InfoRow label="실행 ID" value={`#${run.id}`} />
+                <InfoRow label="스레드 모드" value={threadModeLabel(run.mode)} />
+                <InfoRow label="시나리오" value={scenarioLabel(run.scenario)} />
+                <InfoRow label="스레드 수" value={String(run.threadCount)} />
+                <InfoRow label="램프업" value={`${run.rampUpSeconds}초`} />
+                <InfoRow label="지속 시간" value={`${run.durationSeconds}초`} />
+                <InfoRow label="반복 수" value={String(run.loopCount)} />
+                <InfoRow label="DB 풀 크기" value={String(run.connectionPoolSize)} />
+                <InfoRow
+                  label="외부 API 지연"
+                  value={run.externalDelayMs == null ? "-" : `${run.externalDelayMs} ms`}
+                />
+                <InfoRow
+                  label="외부 API 응답 코드"
+                  value={run.externalStatus == null ? "-" : String(run.externalStatus)}
+                />
+                <InfoRow label="샘플 ID" value={run.sampleId == null ? "-" : String(run.sampleId)} />
+                <InfoRow
+                  label="DB hold 시간"
+                  value={run.dbHoldMs == null ? "-" : `${run.dbHoldMs} ms`}
+                />
+              </div>
             </div>
-          </div>
 
-          <div className="detail-section">
-            <h3>실행 정보</h3>
-            <div className="kv-table">
-              <InfoRow label="생성 시각" value={formatDateTime(run.createdAt)} />
-              <InfoRow label="시작 시각" value={formatDateTime(run.startedAt)} />
-              <InfoRow label="완료 시각" value={formatDateTime(run.completedAt)} />
-              <InfoRow label="요청 경로" value={run.requestPath} mono />
-              <InfoRow label="상관관계 ID" value={run.correlationId} mono />
-              <InfoRow
-                label="실패 메시지"
-                value={run.failureMessage ?? "기록된 실패 메시지 없음"}
-                mono
-              />
+            <div className="detail-subpanel">
+              <h4 className="detail-section-title">실행 메타데이터</h4>
+              <div className="info-table">
+                <InfoRow label="생성 시각" value={formatDateTime(run.createdAt)} />
+                <InfoRow label="시작 시각" value={formatDateTime(run.startedAt)} />
+                <InfoRow label="완료 시각" value={formatDateTime(run.completedAt)} />
+                <InfoRow label="요청 경로" value={run.requestPath} mono />
+                <InfoRow label="상관관계 ID" value={run.correlationId} mono />
+                <InfoRow label="실패 메시지" value={run.failureMessage ?? "-"} />
+                <InfoRow label="결과 CSV" value={run.resultFilePath ?? "-"} mono />
+                <InfoRow label="JMeter 로그" value={run.jmeterLogPath ?? "-"} mono />
+                <InfoRow label="프로세스 출력" value={run.processOutputPath ?? "-"} mono />
+              </div>
             </div>
           </div>
 
           {latestSnapshot ? (
-            <div className="detail-section">
-              <h3>최신 런타임 스냅샷</h3>
+            <div className="detail-subpanel">
+              <h4 className="detail-section-title">최신 시스템 스냅샷</h4>
               <div className="metric-grid metric-grid--snapshot">
                 <MetricCard
                   label="활성 커넥션"
                   value={String(latestSnapshot.activeConnections)}
-                  helper="현재 사용 중인 DB 커넥션"
+                  helper="사용 중인 DB 커넥션"
                 />
                 <MetricCard
-                  label="유휴 커넥션"
-                  value={String(latestSnapshot.idleConnections)}
-                  helper="즉시 재사용 가능한 커넥션"
-                />
-                <MetricCard
-                  label="대기 중 커넥션"
+                  label="대기 커넥션"
                   value={String(latestSnapshot.pendingConnections)}
-                  helper="풀 반납을 기다리는 요청 수"
-                  tone={latestSnapshot.pendingConnections > 0 ? "danger" : "neutral"}
+                  helper="풀 반환 대기"
+                  tone={latestSnapshot.pendingConnections > 0 ? "warning" : "neutral"}
                 />
                 <MetricCard
                   label="전체 커넥션"
                   value={String(latestSnapshot.totalConnections)}
-                  helper="스냅샷 기준 풀 크기"
+                  helper="풀 전체 크기"
                 />
                 <MetricCard
                   label="라이브 스레드"
@@ -193,53 +187,20 @@ export function RunDetailPanel({ run }: RunDetailPanelProps) {
                   helper="JVM 현재 스레드 수"
                 />
                 <MetricCard
-                  label="최대 피크 스레드"
+                  label="피크 스레드"
                   value={String(latestSnapshot.peakThreads)}
-                  helper="실행 중 관측된 최대값"
+                  helper="실행 중 최댓값"
+                />
+                <MetricCard
+                  label="총 시작 스레드"
+                  value={String(latestSnapshot.totalStartedThreads)}
+                  helper="누적 생성량"
                 />
               </div>
             </div>
           ) : null}
-
-          <div className="detail-section">
-            <h3>실행 산출물</h3>
-            <div className="kv-table">
-              <InfoRow label="결과 CSV" value={run.resultFilePath ?? "-"} mono />
-              <InfoRow label="JMeter 로그" value={run.jmeterLogPath ?? "-"} mono />
-              <InfoRow label="프로세스 출력" value={run.processOutputPath ?? "-"} mono />
-            </div>
-          </div>
-
-          <div className="notes-block">
-            <h3>병목 메모</h3>
-            {run.bottleneckNotes.length === 0 ? (
-              <EmptyState
-                title="생성된 병목 메모가 없습니다."
-                message="레이어별 분석 결과가 저장되면 병목 메모가 이곳에 표시됩니다."
-              />
-            ) : (
-              <div className="note-list">
-                {run.bottleneckNotes.map((note, index) => (
-                  <article key={`${note.createdAt}-${index}`} className="note-card">
-                    <div className="note-card-head">
-                      <StatusPill tone={severityTone(note.severity)}>
-                        {severityLabel(note.severity)}
-                      </StatusPill>
-                      <strong>{note.layer ? layerLabel(note.layer) : "전체 흐름"}</strong>
-                    </div>
-                    <p>{note.message}</p>
-                    <span className="note-meta">{formatDateTime(note.createdAt)}</span>
-                  </article>
-                ))}
-              </div>
-            )}
-          </div>
         </div>
       )}
     </Panel>
   );
-}
-
-function shortText(value: string, maxLength: number): string {
-  return value.length > maxLength ? `${value.slice(0, maxLength)}...` : value;
 }

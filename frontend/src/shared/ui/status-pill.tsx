@@ -2,7 +2,7 @@ import { PropsWithChildren } from "react";
 import { cn } from "@/shared/lib/cn";
 
 type StatusPillProps = PropsWithChildren<{
-  tone?: "neutral" | "accent" | "success" | "danger";
+  tone?: "neutral" | "accent" | "warning" | "success" | "danger";
 }>;
 
 export function StatusPill({

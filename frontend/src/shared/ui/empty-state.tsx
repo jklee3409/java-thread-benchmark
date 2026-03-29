@@ -7,7 +7,7 @@ type EmptyStateProps = {
 };
 
 export function EmptyState({
-  title = "표시할 내용이 아직 없습니다.",
+  title = "표시할 데이터가 아직 없습니다.",
   message,
   action,
 }: EmptyStateProps) {

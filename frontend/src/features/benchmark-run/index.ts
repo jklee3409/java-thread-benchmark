@@ -1,6 +1,7 @@
 export * from "./hooks/use-benchmark-dashboard";
 export * from "./model/run-form";
 export * from "./ui/layer-metrics-table";
+export * from "./ui/run-bottleneck-notes-panel";
 export * from "./ui/run-config-form";
 export * from "./ui/run-comparison-panel";
 export * from "./ui/run-detail-panel";
